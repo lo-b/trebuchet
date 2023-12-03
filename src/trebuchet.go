@@ -6,40 +6,28 @@ import (
 	"unicode"
 )
 
-func decipherLine(line string) int {
-	firstDigit := 0
-	secondDigit := 0
-
-	for _, character := range line {
+// decipherFirstDigit tries to find the first digit within a line from the
+// start. If it is found the digit's rune, and it's position are returned. When
+// no digit is found the position -1 and first digit 0 are returned.
+func decipherFirstDigit(line string) (int, rune) {
+	for position, character := range line {
 		if unicode.IsDigit(character) {
-			// first digit unset
-			if firstDigit == 0 {
-				firstDigit = int(character)
-			}
-			// first digit set
-			if firstDigit > 0 {
-				// second digit unset
-				if secondDigit == 0 {
-					secondDigit = int(character)
-				}
-
-				if secondDigit > 0 {
-					secondDigit = int(character)
-				}
-			}
+			return position, character
 		}
 	}
 
-	// if second digit is unset after loop
-	// set second to fist digit
-	if secondDigit == 0 {
-		secondDigit = firstDigit
-	}
+	return -1, 0
+}
 
-	decipheredValue := string(rune(firstDigit)) + string(rune(secondDigit))
+// decipherSecondDigit tries to find a digit within a line starting from the
+// end. When one is found, the rune of the digit is returned.
+func decipherSecondDigit(line string) rune {
+	for i := len(line) - 1; i >= 0; i-- {
+		character := rune(line[i])
 
-	if s, err := strconv.Atoi(decipheredValue); err == nil {
-		return s
+		if unicode.IsDigit(character) {
+			return character
+		}
 	}
 
 	return 0
@@ -47,10 +35,18 @@ func decipherLine(line string) int {
 
 func DecipherCalibrationDocument(calibrationDocument string) int {
 	lines := strings.Split(calibrationDocument, "\n")
-	calibrationValue := 0
+	calibrationValuesSum := 0
+
 	for i := 0; i < len(lines); i++ {
-		calibrationValue += decipherLine(lines[i])
+		newStart, firstRuneDigit := decipherFirstDigit(lines[i])
+		secondRuneDigit := decipherSecondDigit(lines[i][newStart:])
+
+		decipheredStringValue := string(firstRuneDigit) + string(secondRuneDigit)
+
+		if decipheredValue, err := strconv.Atoi(decipheredStringValue); err == nil {
+			calibrationValuesSum += decipheredValue
+		}
 	}
 
-	return calibrationValue
+	return calibrationValuesSum
 }
